@@ -1,0 +1,81 @@
+
+BEGIN_OPTIONS
+
+END_OPTIONS
+
+BEGIN_PROPERTIES
+	_Tint ("Tint", Color) = (1, 1, 1, 1)
+	_Metallic ("Metallic", float) = 0.5
+	_Smoothness ("Smoothness", float) = 0.9
+	[NoScaleOffset] _Noise("Noise Texture", 2D) = "white" {}
+	_NoiseScale("NoiseScale", Vector) = (1,1,0,0)
+	[HDR] _FlakeColor("Flake Color", Color) = (1,1,1,1)
+
+   [NoScaleOffset]_Albedo("Albedo", 2D) = "white" {}
+   [Normal][NoScaleOffset]_Normal("Normal", 2D) = "bump" {}
+END_PROPERTIES
+
+
+// Any variables you want to have in the per material CBuffer go here.
+BEGIN_CBUFFER
+	half4 _Tint;
+	half _Metallic;
+	half _Smoothness;
+	float4 _NoiseScale;
+	float4 _FlakeColor;
+END_CBUFFER
+
+
+// if you are writing a subshader, any defines that should be set on the main
+// shader are defined here
+BEGIN_DEFINES
+END_DEFINES
+
+
+// All code goes here
+
+BEGIN_CODE
+	TEXTURE2D(_Noise);
+	SAMPLER(sampler_Noise);
+
+   TEXTURE2D(_Albedo);
+   SAMPLER(sampler_Albedo);
+   TEXTURE2D(_Normal);
+   SAMPLER(sampler_Normal);
+
+	void SurfaceFunction(inout Surface o, ShaderData d)
+	{
+		float2 uv = d.texcoord0.xy;
+
+		o.Metallic = _Metallic;
+		o.Smoothness = _Smoothness;
+
+		half4 c = SAMPLE_TEXTURE2D(_Albedo, sampler_Albedo, uv);
+		o.Albedo = c.rgb * _Tint.rgb;
+
+		o.Normal = UnpackNormal(SAMPLE_TEXTURE2D(_Normal, sampler_Normal, uv));
+		o.Normal = float3(0,0,1);
+
+		o.Alpha = c.a;
+
+		float2  scaledUV = uv * _NoiseScale.xy;
+		float4 noiseSample = SAMPLE_TEXTURE2D(_Noise, sampler_Noise, scaledUV);
+
+		float flakeMask = saturate(pow(saturate(noiseSample.r - 0.6),0.5));
+		float3 baseNormal = normalize(d.worldSpaceNormal);
+
+		float3 V = normalize(d.worldSpaceViewDir);
+		Light mainLight = GetMainLight();
+		float3 L = normalize(mainLight.direction);
+		float3 H = normalize(V + L);
+
+		float sparkle = pow(saturate(dot(baseNormal, H)), 64.0) * flakeMask;
+
+		float3 flakeContribution = _FlakeColor.rgb * sparkle * mainLight.color;
+
+		//o.Albedo += flakeContribution;
+		o.Emission = flakeContribution;
+	}
+
+END_CODE
+
