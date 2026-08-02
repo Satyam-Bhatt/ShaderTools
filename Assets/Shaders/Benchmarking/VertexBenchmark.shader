@@ -1,0 +1,39 @@
+Shader "Custom/VertexBenchmark"
+{
+    SubShader
+    {
+        Pass
+        {
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+            Varyings vert(Attributes IN)
+            {
+                Varyings OUT;
+                // Push every vertex outside the frustum so no rasterization
+                OUT.positionCS = float4(IN.positionOS.x * 1000.0 + 1000.0, IN.positionOS.y, 0, 1);
+                return OUT;
+            }
+
+            half4 frag(Varyings IN) : SV_Target
+            {
+                return 1; 
+            }
+            ENDHLSL
+        }
+    }
+}
