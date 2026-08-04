@@ -1,0 +1,49 @@
+
+BEGIN_OPTIONS
+
+END_OPTIONS
+
+BEGIN_PROPERTIES
+
+END_PROPERTIES
+
+
+// Any variables you want to have in the per material CBuffer go here.
+BEGIN_CBUFFER
+END_CBUFFER
+
+
+// if you are writing a subshader, any defines that should be set on the main
+// shader are defined here
+BEGIN_DEFINES
+   #pragma shader_feature_local _ _USEMASKMAP
+END_DEFINES
+
+
+// All code goes here
+
+BEGIN_CODE
+
+
+	void ModifyVertex(inout VertexData v, inout ExtraV2F d)
+	{
+		float4 positionWS = GetObjectToWorld(v.vertex);
+		float4 positionVS = GetWorldToViewSpace(positionWS);
+    d.extraV2F0.xyz = _WorldSpaceCameraPos - positionWS;
+		d.extraV2F0.w = positionVS.z;
+	}
+
+	void SurfaceFunction(inout Surface o, ShaderData d)
+	{
+		float2 uv = d.texcoord0.xy;
+		float3 rawDepth = SAMPLE_TEXTURE_2D(_CameraDepthTexture, sampler_Albedo, uv);
+		float3 sceneDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+		float fragmentDepth = -d.extraV2F0.w;
+    float3 scenePos = _WorldSpaceCameraPos - ((d.extraV2F0.xyz / fragmentDepth) * sceneDepth);
+	
+    o.Albedo = scenePos;
+
+}
+
+END_CODE
+
