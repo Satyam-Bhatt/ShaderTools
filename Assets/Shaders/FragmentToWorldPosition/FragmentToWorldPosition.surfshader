@@ -29,7 +29,7 @@ BEGIN_CODE
 	{
 		float4 positionWS = GetObjectToWorld(v.vertex);
 		float4 positionVS = GetWorldToViewSpace(positionWS);
-    d.extraV2F0.xyz = _WorldSpaceCameraPos - positionWS;
+		d.extraV2F0.xyz = _WorldSpaceCameraPos - positionWS;
 		d.extraV2F0.w = positionVS.z;
 	}
 
@@ -39,11 +39,11 @@ BEGIN_CODE
 		float3 rawDepth = SAMPLE_TEXTURE_2D(_CameraDepthTexture, sampler_Albedo, uv);
 		float3 sceneDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
 		float fragmentDepth = -d.extraV2F0.w;
-    float3 scenePos = _WorldSpaceCameraPos - ((d.extraV2F0.xyz / fragmentDepth) * sceneDepth);
+		float3 scenePos = _WorldSpaceCameraPos - ((d.extraV2F0.xyz / fragmentDepth) * sceneDepth);
 	
-    o.Albedo = scenePos;
+		o.Albedo = scenePos;
 
-}
+	}
 
 END_CODE
 
