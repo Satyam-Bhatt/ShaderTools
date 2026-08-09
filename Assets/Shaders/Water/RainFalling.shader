@@ -11,6 +11,11 @@ Shader "Custom/RainFalling"
         _BulgeStrength  ("Bulge", Range(0, 0.2)) = 0.03
         _Specular       ("Highlight Strength", float) = 1.5
         _Shininess      ("Highlight Sharpness", float) = 32
+
+        _WiperPivotUV ("Wiper Pivot (UV)", Vector) = (0.5, 0.05, 0, 0)
+        _WiperAngle ("Wiper Current Angle (deg)", Range(-90,90)) = 0
+        _WiperWidth ("Wiper Blade Width (deg)", Range(1,60)) = 25
+        _WiperRadius ("Wiper Reach (UV units)", Float) = 1.2
     }
 
     SubShader
@@ -51,6 +56,11 @@ Shader "Custom/RainFalling"
                 half   _BulgeStrength;
                 half   _Specular;
                 half   _Shininess;
+
+                half2 _WiperPivotUV;
+                half _WiperAngle;
+                half _WiperWidth;
+                half _WiperRadius;
             CBUFFER_END
 
             struct Attributes
@@ -66,6 +76,20 @@ Shader "Custom/RainFalling"
                 float4 screenPos   : TEXCOORD1;
                 float3 positionWS  : TEXCOORD2; // OPTIONAL
             };
+
+            float WiperMask(float2 uv)
+            {
+                float2 d = uv - _WiperPivotUV;
+                float dist = length(d);
+                float angle = degrees(atan2(d.y, d.x));
+
+                float angleDelta = abs(angle - _WiperAngle);
+                angleDelta = min(angleDelta, 360.0 - angleDelta);
+
+                float angularMask = 1.0 - smoothstep(_WiperWidth * 0.5 - 4.0, _WiperWidth * 0.5, angleDelta);
+                float radialMask = 1.0 - smoothstep(_WiperRadius - 0.05, _WiperRadius, dist);
+                return saturate(angularMask * radialMask);
+            }
 
             Varyings vert (Attributes IN)
             {
