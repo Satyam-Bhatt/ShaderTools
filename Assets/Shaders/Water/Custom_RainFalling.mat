@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_RainScroll_Mobile
-  m_Shader: {fileID: 4800000, guid: 8e2bb9f24331bb6498bce6e164528e7b, type: 3}
+  m_Name: Custom_RainFalling
+  m_Shader: {fileID: 4800000, guid: 11ac6c78224f44d4b8987dba4b578fca, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -29,12 +29,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BulgeStrength: 0.2
-    - _Shininess: 128
-    - _Specular: 4
+    - _BulgeStrength: 0.151
+    - _Shininess: 32
+    - _Specular: 1.5
     m_Colors:
-    - _BgTint: {r: 0, g: 0.3421053, b: 1, a: 0.22745098}
-    - _Color: {r: 0, g: 0.41568652, b: 1, a: 0.24705882}
+    - _BgTint: {r: 0.39999998, g: 0.5, b: 0.45, a: 0.35}
+    - _Color: {r: 0.9, g: 0.92, b: 0.95, a: 0.9}
     - _ScrollSpeed: {r: 0, g: 0.5, b: 0, a: 0}
     - _Tiling: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []

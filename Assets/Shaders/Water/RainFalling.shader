@@ -1,18 +1,14 @@
-Shader "Custom/RainScroll_Mobile"
+Shader "Custom/RainFalling"
 {
-    // Same scrolling rain, but each streak/droplet BULGES and refracts
-    // whatever is behind the surface, like real wet glass.
-    //
-    // REQUIRES: URP Renderer asset -> "Opaque Texture" enabled.
-
+    // REQUIRES _CameraOpaqueTexture
     Properties
     {
-        _MainTex        ("Rain Texture (Alpha = streak/height mask)", 2D) = "white" {}
+        _MainTex        ("Rain Texture (Alpha = height mask)", 2D) = "white" {}
         _Color          ("Streak Tint / Opacity", Color) = (0.9, 0.92, 0.95, 0.9)
-        _BgTint         ("Windshield/Glass Tint (applies everywhere, not just gaps)", Color) = (0.4, 0.5, 0.45, 0.35)
+        _BgTint         ("Glass Tint", Color) = (0.4, 0.5, 0.45, 0.35)
         _Tiling         ("Tiling (X, Y)", Vector) = (1, 1, 0, 0)
         _ScrollSpeed    ("Scroll Speed (X, Y)", Vector) = (0, -1.5, 0, 0)
-        _BulgeStrength  ("Bulge / Refraction Strength", Range(0, 0.2)) = 0.03
+        _BulgeStrength  ("Bulge", Range(0, 0.2)) = 0.03
         _Specular       ("Highlight Strength", float) = 1.5
         _Shininess      ("Highlight Sharpness", float) = 32
     }
@@ -26,9 +22,6 @@ Shader "Custom/RainScroll_Mobile"
             "RenderPipeline" = "UniversalPipeline"
         }
 
-        // We need to draw AFTER opaques exist in _CameraOpaqueTexture, and
-        // we don't need real blending since alpha is used to mask the lerp
-        // manually - but keeping normal alpha blend is fine and simplest.
         Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
         Cull Off
@@ -40,7 +33,7 @@ Shader "Custom/RainScroll_Mobile"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 3.0 // needs ddx/ddy + a texture fetch, still mobile-fine
+            #pragma target 3.0 
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
@@ -90,22 +83,19 @@ Shader "Custom/RainScroll_Mobile"
 
             half4 frag (Varyings IN) : SV_Target
             {
-                // Height field for this droplet/streak
                 half drop = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv).a;
 
-                // Cheap normal-from-height using screen-space derivatives.
-                // Flat areas (drop constant, mostly 0) give ~zero gradient,
-                // so distortion naturally only shows up on droplet edges.
+                // Normal from height
                 half2 grad = half2(ddx(drop), ddy(drop));
                 // Grad is negative as normal leans away from the direction of increasing height
                 half3 normal = normalize(half3(-grad * _BulgeStrength * 40.0, 1.0)); // Multiplier can make it crazy
 
-                // Refract the background through the droplet normal
+                // Refract
                 float2 screenUV = IN.screenPos.xy / IN.screenPos.w; // Perspective divide to make it 0-1
                 float2 distortedUV = screenUV + normal.xy * _BulgeStrength;// * drop; // Comment drop in if need to make it a bit more subtle
                 half3 bgColor = SampleSceneColor(distortedUV);
 
-                // Fake specular highlight so droplets "pop" like wet glass
+                //Specular
                 Light mainLight = GetMainLight(); //OPTIONAL
                 half3 L = mainLight.direction; //OPTIONAL  
                 half3 V = GetWorldSpaceNormalizeViewDir(IN.positionWS); //OPTIONAL
@@ -116,15 +106,11 @@ Shader "Custom/RainScroll_Mobile"
                 //half  NdotL = saturate(dot(normal, H));
                 half  spec = pow(NdotL, _Shininess) * _Specular * drop;
 
-                // Tint the ENTIRE surface uniformly first - like actual
-                // tinted glass - then let droplets add refraction/highlight
-                // on top of that tint rather than replacing it in the gaps.
+                // Glass with Drops
                 half3 tintedBg = lerp(bgColor, _BgTint.rgb, _BgTint.a);
                 half3 outRGB   = tintedBg + spec * _Color.rgb;
 
-                // Base alpha is the constant "how tinted is the glass"
-                // value, with a small extra opacity bump right at droplets
-                // (wet spots read very slightly denser than dry glass).
+                // Darker wet section
                 // Porter-Duff "over" operator a + b * (1 - a)
                 half outAlpha = saturate(_BgTint.a + drop * _Color.a * (1.0 - _BgTint.a));
 
