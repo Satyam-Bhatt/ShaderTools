@@ -29,12 +29,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _DropDistortion: 0.3
+    - _DropSize: 0.015
     - _NoiseScale: 1
-    - _WiperAngle: 55
+    - _WiperAngle: -88
     - _WiperRadius: 1.2
     - _WiperWidth: 30.3
     m_Colors:
     - _BgTint: {r: 0.39999998, g: 0.5, b: 0.45, a: 0.35}
+    - _TestVar: {r: 2, g: 1, b: 0, a: 0}
     - _WiperPivotUV: {r: 0.5, g: 0.05, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

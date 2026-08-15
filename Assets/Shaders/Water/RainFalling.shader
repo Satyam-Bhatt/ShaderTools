@@ -29,7 +29,6 @@ Shader "Custom/RainWiper"
         _BgTint         ("Glass Tint", Color) = (0.4, 0.5, 0.45, 0.35)
         _NoiseTex       ("Tileable Noise (RGBA, Wrap = Repeat)", 2D) = "gray" {}
         _NoiseScale     ("Noise Sample Scale", Float) = 1.0
-        _WetnessMap     ("Wetness Map (driven by WetnessMapController.cs)", 2D) = "white" {}
 
         _WiperPivotUV   ("Wiper Pivot (UV)", Vector) = (0.5, 0.05, 0, 0)
         _WiperAngle     ("Wiper Current Angle (deg)", Range(-90,90)) = 0
