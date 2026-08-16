@@ -48,6 +48,7 @@ public class VertexBenchmarkRunner : MonoBehaviour
 
         _cmd.Clear();
         _cmd.SetRenderTarget(_rt);
+        _cmd.ClearRenderTarget(false, true, Color.clear);
         if(_runTest)
         {
             for (int i = 0; i < drawCalls; i++)

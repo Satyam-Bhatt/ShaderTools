@@ -15,7 +15,6 @@ public class CROPBenchmarkRunner : MonoBehaviour
     public int sampleFrames = 120;
 
     Material _mat;
-    Mesh _mesh;
     RenderTexture _rt;
     CommandBuffer _cmd;
     readonly List<double> _samples = new List<double>();
@@ -38,7 +37,6 @@ public class CROPBenchmarkRunner : MonoBehaviour
 
         _rt.Release();
         Destroy(_mat);
-        Destroy(_mesh);
     }
 
     void OnEndCameraRendering(ScriptableRenderContext ctx, Camera cam)

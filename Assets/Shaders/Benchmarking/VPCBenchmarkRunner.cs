@@ -2,36 +2,40 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
-public class FragmentBenchmarkRunner : MonoBehaviour
+// VPC responsible for converting clip space to screen space - clipping - culling
+public class VPCBenchmarkRunner : MonoBehaviour
 {
     public Shader shader;
     public Camera targetCamera;
-    public int iterations = 64;
     public int width = 1920, height = 1080;
+
+    public int triangleCount = 4000000;
+    public int drawCalls = 12;
     public int warmupFrames = 30;
     public int sampleFrames = 120;
 
     Material _mat;
+    MaterialPropertyBlock _props; 
     RenderTexture _rt;
     CommandBuffer _cmd;
     readonly List<double> _samples = new List<double>();
     bool _running = false;
+    bool _runTest = false;
 
     private void OnEnable()
     {
         _mat = new Material(shader);
-        _mat.SetInt("_Iterations", iterations);
         _rt = new RenderTexture(width, height, 0);
         _rt.Create();
-        _cmd = new CommandBuffer { name = "Hash Benchmark" };
+        _cmd = new CommandBuffer { name = "VPC Benchmark" };
+        _props = new MaterialPropertyBlock();
 
         RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
         RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
@@ -39,8 +43,6 @@ public class FragmentBenchmarkRunner : MonoBehaviour
         Destroy(_mat);
     }
 
-
-    // Called once per camera after it has finished rendering. Its called per frame 
     void OnEndCameraRendering(ScriptableRenderContext ctx, Camera cam)
     {
         if (cam != targetCamera) return;
@@ -48,18 +50,25 @@ public class FragmentBenchmarkRunner : MonoBehaviour
         _cmd.Clear();
         _cmd.SetRenderTarget(_rt);
         _cmd.ClearRenderTarget(false, true, Color.clear);
-        // Run the vertex shader 3 times with vertex index 0,1,2
-        _cmd.DrawProcedural(Matrix4x4.identity, _mat, 0, MeshTopology.Triangles, 3, 1);
+        if (_runTest)
+        {
+            int perDraw = triangleCount / drawCalls;
+            for (int i = 0; i < drawCalls; i++)
+            {
+                _props.SetInt("_TriOffset", i * perDraw);
+                _cmd.DrawProcedural(Matrix4x4.identity, _mat, 0, MeshTopology.Triangles, perDraw * 3, 1, _props);
+            }
+        }
         // Copies the commands
         ctx.ExecuteCommandBuffer(_cmd);
         // Sends the commands to the GPU
         ctx.Submit();
     }
 
+
     [ContextMenu("BenchMark Begin")]
     public void RunBenchmark()
     {
-        _mat.SetInt("_Iterations", iterations);
         StartCoroutine(RunBenchmark_Routine());
     }
 
@@ -69,6 +78,8 @@ public class FragmentBenchmarkRunner : MonoBehaviour
         _running = true;
 
         _samples.Clear();
+        _runTest = true;
+
         for (int i = 0; i < warmupFrames; i++) yield return null;
 
         // Get timing as frame completes
@@ -85,8 +96,9 @@ public class FragmentBenchmarkRunner : MonoBehaviour
         _samples.Sort();
         double median = _samples.Count > 0 ? _samples[_samples.Count / 2] : 0;
         double mean = _samples.Count > 0 ? _samples.Average() : 0;
-        Debug.Log($"Hash benchmark ({iterations} iters): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
+        Debug.Log($"VPC benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
 
+        _runTest = false;
         _running = false;
     }
 }
