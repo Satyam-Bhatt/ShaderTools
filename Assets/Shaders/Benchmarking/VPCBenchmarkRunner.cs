@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using TMPro;
 
 // VPC responsible for converting clip space to screen space - clipping - culling
 public class VPCBenchmarkRunner : MonoBehaviour
 {
     public Shader shader;
     public Camera targetCamera;
-    public int width = 1920, height = 1080;
 
     public int triangleCount = 4000000;
     public int drawCalls = 12;
-    public int warmupFrames = 30;
-    public int sampleFrames = 120;
+    public TMP_Text debugger;
 
     Material _mat;
     MaterialPropertyBlock _props; 
@@ -27,7 +26,7 @@ public class VPCBenchmarkRunner : MonoBehaviour
     private void OnEnable()
     {
         _mat = new Material(shader);
-        _rt = new RenderTexture(width, height, 0);
+        _rt = new RenderTexture(Parent_ShaderTest.rt_WidthHeight.x, Parent_ShaderTest.rt_WidthHeight.y, 0);
         _rt.Create();
         _cmd = new CommandBuffer { name = "VPC Benchmark" };
         _props = new MaterialPropertyBlock();
@@ -80,12 +79,12 @@ public class VPCBenchmarkRunner : MonoBehaviour
         _samples.Clear();
         _runTest = true;
 
-        for (int i = 0; i < warmupFrames; i++) yield return null;
+        for (int i = 0; i < Parent_ShaderTest.warmupFrames; i++) yield return null;
 
         // Get timing as frame completes
         FrameTimingManager.CaptureFrameTimings();
         var timings = new FrameTiming[1];
-        for (int i = 0; i < sampleFrames; i++)
+        for (int i = 0; i < Parent_ShaderTest.sampleFrames; i++)
         {
             yield return new WaitForEndOfFrame();
             FrameTimingManager.CaptureFrameTimings();
@@ -97,6 +96,7 @@ public class VPCBenchmarkRunner : MonoBehaviour
         double median = _samples.Count > 0 ? _samples[_samples.Count / 2] : 0;
         double mean = _samples.Count > 0 ? _samples.Average() : 0;
         Debug.Log($"VPC benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
+        debugger.text = $"VPC benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}\n" + debugger.text;
 
         _runTest = false;
         _running = false;

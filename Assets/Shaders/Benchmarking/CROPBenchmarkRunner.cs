@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using TMPro;
 
 // CROP - Color Raster Operations - For Blending
 public class CROPBenchmarkRunner : MonoBehaviour
@@ -10,10 +11,7 @@ public class CROPBenchmarkRunner : MonoBehaviour
     public Shader shader;
     public Camera targetCamera;
     public int overlappingTriangleCount = 100;
-    public int width = 1920, height = 1080;
-    public int warmupFrames = 30;
-    public int sampleFrames = 120;
-
+    public TMP_Text debugger;
     Material _mat;
     RenderTexture _rt;
     CommandBuffer _cmd;
@@ -24,7 +22,7 @@ public class CROPBenchmarkRunner : MonoBehaviour
     private void OnEnable()
     {
         _mat = new Material(shader);
-        _rt = new RenderTexture(width, height, 0);
+        _rt = new RenderTexture(Parent_ShaderTest.rt_WidthHeight.x, Parent_ShaderTest.rt_WidthHeight.y, 0);
         _rt.Create();
         _cmd = new CommandBuffer { name = "Hash Benchmark" };
 
@@ -71,12 +69,12 @@ public class CROPBenchmarkRunner : MonoBehaviour
         _samples.Clear();
         _runTest = true;
 
-        for (int i = 0; i < warmupFrames; i++) yield return null;
+        for (int i = 0; i < Parent_ShaderTest.warmupFrames; i++) yield return null;
 
         // Get timing as frame completes
         FrameTimingManager.CaptureFrameTimings();
         var timings = new FrameTiming[1];
-        for (int i = 0; i < sampleFrames; i++)
+        for (int i = 0; i < Parent_ShaderTest.sampleFrames; i++)
         {
             yield return new WaitForEndOfFrame();
             FrameTimingManager.CaptureFrameTimings();
@@ -88,6 +86,7 @@ public class CROPBenchmarkRunner : MonoBehaviour
         double median = _samples.Count > 0 ? _samples[_samples.Count / 2] : 0;
         double mean = _samples.Count > 0 ? _samples.Average() : 0;
         Debug.Log($"CROP benchmark ({overlappingTriangleCount} triangle count): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
+        debugger.text = $"CROP benchmark ({overlappingTriangleCount} triangle count): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}\n" + debugger.text;
 
         _runTest = false;
         _running = false;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using TMPro;
 
 // Vertex Attribute Fetch (VAF)
 public class VertexBenchmarkRunner : MonoBehaviour
@@ -10,10 +11,8 @@ public class VertexBenchmarkRunner : MonoBehaviour
     public Shader shader;         
     public Camera targetCamera;
     public int triangleCount = 1000000;
-    public int width = 1920, height = 1080;
     public int drawCalls = 18;
-    public int warmupFrames = 30;
-    public int sampleFrames = 120;
+    public TMP_Text debugger;
 
     Material _mat;
     Mesh _mesh;
@@ -26,7 +25,7 @@ public class VertexBenchmarkRunner : MonoBehaviour
     private void OnEnable()
     {
         _mat = new Material(shader);
-        _rt = new RenderTexture(width, height, 0);
+        _rt = new RenderTexture(Parent_ShaderTest.rt_WidthHeight.x, Parent_ShaderTest.rt_WidthHeight.y, 0);
         _rt.Create();
         _cmd = new CommandBuffer { name = "VAF Benchmark" };
 
@@ -75,12 +74,12 @@ public class VertexBenchmarkRunner : MonoBehaviour
         _runTest = true;
         _mesh = BuildUniqueVertexMesh(triangleCount);
 
-        for (int i = 0; i < warmupFrames; i++) yield return null;
+        for (int i = 0; i < Parent_ShaderTest.warmupFrames; i++) yield return null;
 
         // Get timing as frame completes
         FrameTimingManager.CaptureFrameTimings();
         var timings = new FrameTiming[1];
-        for (int i = 0; i < sampleFrames; i++)
+        for (int i = 0; i < Parent_ShaderTest.sampleFrames; i++)
         {
             yield return new WaitForEndOfFrame();
             FrameTimingManager.CaptureFrameTimings();
@@ -92,6 +91,7 @@ public class VertexBenchmarkRunner : MonoBehaviour
         double median = _samples.Count > 0 ? _samples[_samples.Count / 2] : 0;
         double mean = _samples.Count > 0 ? _samples.Average() : 0;
         Debug.Log($"VAF benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
+        debugger.text = $"VAF benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}\n" + debugger.text;
 
         _runTest = false;
         _running = false;
