@@ -12,6 +12,7 @@ public class CROPBenchmarkRunner : MonoBehaviour
     public Camera targetCamera;
     public int overlappingTriangleCount = 100;
     public TMP_Text debugger;
+    [SerializeField] private TMP_InputField t_overlappingTriangleCount;
     Material _mat;
     RenderTexture _rt;
     CommandBuffer _cmd;
@@ -86,10 +87,18 @@ public class CROPBenchmarkRunner : MonoBehaviour
         double median = _samples.Count > 0 ? _samples[_samples.Count / 2] : 0;
         double mean = _samples.Count > 0 ? _samples.Average() : 0;
         Debug.Log($"CROP benchmark ({overlappingTriangleCount} triangle count): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
-        debugger.text = $"CROP benchmark ({overlappingTriangleCount} triangle count): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}\n" + debugger.text;
+        Parent_ShaderTest.AddDebugLine($"CROP benchmark ({overlappingTriangleCount} triangle count): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
 
         _runTest = false;
         _running = false;
+    }
+
+    public void SetOverlappingTriangelCount()
+    {
+        if (int.TryParse(t_overlappingTriangleCount.text, out int res))
+        {
+            overlappingTriangleCount = res;
+        }
     }
 }
 

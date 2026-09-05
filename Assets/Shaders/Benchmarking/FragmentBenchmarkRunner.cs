@@ -11,6 +11,7 @@ public class FragmentBenchmarkRunner : MonoBehaviour
     public Camera targetCamera;
     public int iterations = 64;
     public TMP_Text debugger;
+    [SerializeField] private TMP_InputField t_Iteriation;
 
     Material _mat;
     RenderTexture _rt;
@@ -84,8 +85,16 @@ public class FragmentBenchmarkRunner : MonoBehaviour
         double median = _samples.Count > 0 ? _samples[_samples.Count / 2] : 0;
         double mean = _samples.Count > 0 ? _samples.Average() : 0;
         Debug.Log($"Hash benchmark ({iterations} iters): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
-        debugger.text = $"Hash benchmark ({iterations} iters): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}\n" + debugger.text;
+        Parent_ShaderTest.AddDebugLine($"Hash benchmark ({iterations} iters): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
 
         _running = false;
+    }
+
+    public void SetIterations()
+    {
+        if (int.TryParse(t_Iteriation.text, out int res))
+        {
+            iterations = res;
+        }
     }
 }

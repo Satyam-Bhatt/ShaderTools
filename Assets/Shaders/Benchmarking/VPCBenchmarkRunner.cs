@@ -15,6 +15,9 @@ public class VPCBenchmarkRunner : MonoBehaviour
     public int drawCalls = 12;
     public TMP_Text debugger;
 
+    [SerializeField] private TMP_InputField t_triangleCount;
+    [SerializeField] private TMP_InputField t_drawCalls;
+
     Material _mat;
     MaterialPropertyBlock _props; 
     RenderTexture _rt;
@@ -96,9 +99,25 @@ public class VPCBenchmarkRunner : MonoBehaviour
         double median = _samples.Count > 0 ? _samples[_samples.Count / 2] : 0;
         double mean = _samples.Count > 0 ? _samples.Average() : 0;
         Debug.Log($"VPC benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
-        debugger.text = $"VPC benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}\n" + debugger.text;
+        Parent_ShaderTest.AddDebugLine($"VPC benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
 
         _runTest = false;
         _running = false;
+    }
+
+    public void SetTriangelCount()
+    {
+        if(int.TryParse(t_triangleCount.text, out int res))
+        {
+            triangleCount = res;
+        }
+    }
+
+    public void SetDrawCalls()
+    {
+        if(int.TryParse(t_drawCalls.text, out int res))
+        {
+            drawCalls = res;
+        }
     }
 }

@@ -534,7 +534,7 @@ GameObject:
   - component: {fileID: 120878174}
   - component: {fileID: 120878175}
   m_Layer: 5
-  m_Name: VerticalLayout2 (1)
+  m_Name: Text_Layout
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -601,7 +601,7 @@ GameObject:
   - component: {fileID: 131499325}
   - component: {fileID: 131499324}
   m_Layer: 5
-  m_Name: DRAW CALLS
+  m_Name: VPC_DRAW CALLS
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1586,7 +1586,7 @@ GameObject:
   - component: {fileID: 370523656}
   - component: {fileID: 370523655}
   m_Layer: 5
-  m_Name: DRAW CALLS
+  m_Name: VAF_DRAW CALLS
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1796,6 +1796,8 @@ MonoBehaviour:
   triangleCount: 4000000
   drawCalls: 12
   debugger: {fileID: 1892405094}
+  t_triangleCount: {fileID: 1230097402}
+  t_drawCalls: {fileID: 496300943}
 --- !u!4 &414384679
 Transform:
   m_ObjectHideFlags: 0
@@ -2207,7 +2209,7 @@ GameObject:
   - component: {fileID: 461850205}
   - component: {fileID: 461850204}
   m_Layer: 5
-  m_Name: ITERATIONS
+  m_Name: FRAG_ITERATIONS
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2526,7 +2528,7 @@ GameObject:
   - component: {fileID: 496300944}
   - component: {fileID: 496300943}
   m_Layer: 5
-  m_Name: VPC
+  m_Name: VPC_DRAW CALLS
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2631,7 +2633,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 414384678}
+        m_TargetAssemblyTypeName: VPCBenchmarkRunner, Assembly-CSharp
+        m_MethodName: SetDrawCalls
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -2724,6 +2738,7 @@ MonoBehaviour:
   targetCamera: {fileID: 1613989330}
   iterations: 5000
   debugger: {fileID: 1892405094}
+  t_Iteriation: {fileID: 1786819573}
 --- !u!4 &537510795
 Transform:
   m_ObjectHideFlags: 0
@@ -2826,7 +2841,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 6.600525, y: 100}
+  m_AnchoredPosition: {x: 6.600586, y: 100}
   m_SizeDelta: {x: -365.2249, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &588952960
@@ -2930,6 +2945,7 @@ MonoBehaviour:
   targetCamera: {fileID: 1613989330}
   overlappingTriangleCount: 100
   debugger: {fileID: 1892405094}
+  t_overlappingTriangleCount: {fileID: 1578240243}
 --- !u!4 &611008525
 Transform:
   m_ObjectHideFlags: 0
@@ -3234,7 +3250,7 @@ GameObject:
   - component: {fileID: 706515214}
   - component: {fileID: 706515213}
   m_Layer: 5
-  m_Name: Fragment
+  m_Name: _
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3412,7 +3428,7 @@ GameObject:
   - component: {fileID: 767519876}
   - component: {fileID: 767519875}
   m_Layer: 5
-  m_Name: VAF
+  m_Name: VAF_DRAW CALLS
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3517,7 +3533,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1663928930}
+        m_TargetAssemblyTypeName: VertexBenchmarkRunner, Assembly-CSharp
+        m_MethodName: SetDrawCalls
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3696,7 +3724,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1195351139}
+        m_TargetAssemblyTypeName: Parent_ShaderTest, Assembly-CSharp
+        m_MethodName: SetWarmupFrames
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -4006,7 +4046,7 @@ GameObject:
   - component: {fileID: 990393786}
   - component: {fileID: 990393787}
   m_Layer: 5
-  m_Name: VerticalLayout
+  m_Name: Buttons_Layout
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4074,7 +4114,7 @@ GameObject:
   - component: {fileID: 1010074331}
   - component: {fileID: 1010074330}
   m_Layer: 5
-  m_Name: VAF
+  m_Name: VAF_TRIANGLE COUNT
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4179,7 +4219,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1663928930}
+        m_TargetAssemblyTypeName: VertexBenchmarkRunner, Assembly-CSharp
+        m_MethodName: SetTriangleCount
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -4358,7 +4410,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1195351139}
+        m_TargetAssemblyTypeName: Parent_ShaderTest, Assembly-CSharp
+        m_MethodName: SetSampleFrames
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -4430,7 +4494,7 @@ GameObject:
   - component: {fileID: 1063820427}
   - component: {fileID: 1063820426}
   m_Layer: 5
-  m_Name: TRIANGLE COUNT
+  m_Name: VAF_TRIANGLE COUNT
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4748,6 +4812,7 @@ MonoBehaviour:
   rt_Height_T: {fileID: 1392543478}
   warmupFrames_T: {fileID: 802304190}
   sampleFrames_T: {fileID: 1032037370}
+  deubgger_T: {fileID: 1892405094}
 --- !u!4 &1195351140
 Transform:
   m_ObjectHideFlags: 0
@@ -4776,7 +4841,7 @@ GameObject:
   - component: {fileID: 1230097403}
   - component: {fileID: 1230097402}
   m_Layer: 5
-  m_Name: VPC
+  m_Name: VPC_TRIANGLE COUNT
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4881,7 +4946,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 414384678}
+        m_TargetAssemblyTypeName: VPCBenchmarkRunner, Assembly-CSharp
+        m_MethodName: SetTriangelCount
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -5060,7 +5137,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1195351139}
+        m_TargetAssemblyTypeName: Parent_ShaderTest, Assembly-CSharp
+        m_MethodName: SetRTWidth
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -5182,7 +5271,7 @@ GameObject:
   - component: {fileID: 1348502820}
   - component: {fileID: 1348502821}
   m_Layer: 5
-  m_Name: VerticalLayout2 (2)
+  m_Name: Text_Layout2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5249,7 +5338,7 @@ GameObject:
   - component: {fileID: 1352180294}
   - component: {fileID: 1352180293}
   m_Layer: 5
-  m_Name: OVERLAPPING TRIANGLES
+  m_Name: CROP_OVERLAPPING TRIANGLES
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5630,7 +5719,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1195351139}
+        m_TargetAssemblyTypeName: Parent_ShaderTest, Assembly-CSharp
+        m_MethodName: SetRTHeight
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -5702,7 +5803,7 @@ GameObject:
   - component: {fileID: 1481631953}
   - component: {fileID: 1481631952}
   m_Layer: 5
-  m_Name: OVERLAPPING TRIANGLES
+  m_Name: _
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6204,7 +6305,7 @@ GameObject:
   - component: {fileID: 1578240244}
   - component: {fileID: 1578240243}
   m_Layer: 5
-  m_Name: CROP
+  m_Name: CROP_OVERLAPPING TRIANGLES
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6309,7 +6410,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 611008524}
+        m_TargetAssemblyTypeName: CROPBenchmarkRunner, Assembly-CSharp
+        m_MethodName: SetOverlappingTriangelCount
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -6656,7 +6769,7 @@ GameObject:
   - component: {fileID: 1619433396}
   - component: {fileID: 1619433395}
   m_Layer: 5
-  m_Name: CROP
+  m_Name: _
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6960,7 +7073,7 @@ GameObject:
   - component: {fileID: 1663836972}
   - component: {fileID: 1663836971}
   m_Layer: 5
-  m_Name: OVERLAPPING TRIANGLES (1)
+  m_Name: _
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7096,7 +7209,7 @@ GameObject:
   - component: {fileID: 1663928931}
   - component: {fileID: 1663928930}
   m_Layer: 0
-  m_Name: VertexShaderTest
+  m_Name: VAFShaderTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7119,6 +7232,8 @@ MonoBehaviour:
   triangleCount: 1000000
   drawCalls: 18
   debugger: {fileID: 1892405094}
+  t_TriangleCount: {fileID: 1010074330}
+  t_drawCalls: {fileID: 767519875}
 --- !u!4 &1663928931
 Transform:
   m_ObjectHideFlags: 0
@@ -7472,7 +7587,7 @@ GameObject:
   - component: {fileID: 1786819574}
   - component: {fileID: 1786819573}
   m_Layer: 5
-  m_Name: Fragment
+  m_Name: FRAG_ITERATIONS
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7577,7 +7692,19 @@ MonoBehaviour:
       m_Calls: []
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 537510794}
+        m_TargetAssemblyTypeName: FragmentBenchmarkRunner, Assembly-CSharp
+        m_MethodName: SetIterations
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -8110,7 +8237,7 @@ GameObject:
   - component: {fileID: 1924845114}
   - component: {fileID: 1924845115}
   m_Layer: 5
-  m_Name: VerticalLayout2
+  m_Name: Input_Layout
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8690,7 +8817,7 @@ GameObject:
   - component: {fileID: 2048706172}
   - component: {fileID: 2048706171}
   m_Layer: 5
-  m_Name: VPC
+  m_Name: VPC_TRIANGLE COUNT
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8735,7 +8862,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: VPC
+  m_text: TRIANGLE COUNT
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -8862,7 +8989,7 @@ GameObject:
   - component: {fileID: 2089888686}
   - component: {fileID: 2089888687}
   m_Layer: 5
-  m_Name: VerticalLayout2 (3)
+  m_Name: Input_Layout2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -13,6 +13,8 @@ public class VertexBenchmarkRunner : MonoBehaviour
     public int triangleCount = 1000000;
     public int drawCalls = 18;
     public TMP_Text debugger;
+    [SerializeField] private TMP_InputField t_TriangleCount;
+    [SerializeField] private TMP_InputField t_drawCalls;
 
     Material _mat;
     Mesh _mesh;
@@ -91,7 +93,7 @@ public class VertexBenchmarkRunner : MonoBehaviour
         double median = _samples.Count > 0 ? _samples[_samples.Count / 2] : 0;
         double mean = _samples.Count > 0 ? _samples.Average() : 0;
         Debug.Log($"VAF benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
-        debugger.text = $"VAF benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}\n" + debugger.text;
+        Parent_ShaderTest.AddDebugLine($"VAF benchmark ({triangleCount} triangle count {drawCalls} Draw Calls): median={median:F3}ms mean={mean:F3}ms samples={_samples.Count}");
 
         _runTest = false;
         _running = false;
@@ -113,4 +115,21 @@ public class VertexBenchmarkRunner : MonoBehaviour
         mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100000f); // avoid CPU culling with big bounds
         return mesh;
     }
+
+    public void SetDrawCalls()
+    {
+        if (int.TryParse(t_drawCalls.text, out int res))
+        {
+            drawCalls = res;
+        }
+    }
+
+    public void SetTriangleCount()
+    {
+        if (int.TryParse(t_TriangleCount.text, out int res))
+        {
+            triangleCount = res;
+        }
+    }
 }
+
