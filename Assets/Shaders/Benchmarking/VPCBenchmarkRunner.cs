@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using TMPro;
 
-// VPC responsible for converting clip space to screen space - clipping - culling
+// VPC(Viewport Processing Cluster) responsible for converting clip space to screen space - clipping - culling
 public class VPCBenchmarkRunner : MonoBehaviour
 {
     public Shader shader;
@@ -57,7 +57,7 @@ public class VPCBenchmarkRunner : MonoBehaviour
             int perDraw = triangleCount / drawCalls;
             for (int i = 0; i < drawCalls; i++)
             {
-                _props.SetInt("_TriOffset", i * perDraw);
+                _props.SetInt("_TriOffset", i * perDraw); // To make non overlapping
                 _cmd.DrawProcedural(Matrix4x4.identity, _mat, 0, MeshTopology.Triangles, perDraw * 3, 1, _props);
             }
         }

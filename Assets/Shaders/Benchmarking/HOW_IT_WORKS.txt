@@ -1,0 +1,90 @@
+### HOW EACH STAGE WORKS
+
+## FragmentBenchmark - SM fragment/ALU throughput
+Isolates: raw math throughput of the Streaming Multiprocessor's execution pipes (the units that actually run your shader code) — not memory, not geometry, just compute.
+
+How:
+- One full-screen triangle, generated from SV_VertexID alone — no vertex buffer, so vertex fetch cost ≈ 0.
+- Fragment shader loops an expensive-but-simple math op (sin-based hash) N times per pixel.
+- Everything is written to a plain render target — no blending, no depth complexity.
+
+Why this isolates ALU cost: the only thing scaling with the workload is "how many math ops does the fragment shader run." Vertex work, rasterization, and output writing are all trivial by comparison, so total time is dominated by the loop.
+
+Validation: doubling iterations should roughly double the measured time.
+
+=======================================================================
+
+## VAF — Vertex Attribute Fetch
+Isolates: the cost of reading vertex data (position, etc.) out of VRAM.
+
+How:
+- A real Mesh with millions of unique vertices (no vertex sharing — every triangle gets its own 3 verts, so there's nothing for the post-transform vertex cache to reuse).
+- The vertex shader pushes every vertex's final position far outside the screen/frustum.
+- Because nothing survives to be on-screen, rasterization, ZROP (depth test), and CROP (blending) all do essentially zero work downstream.
+
+Why this isolates fetch cost: the vertex shader still has to fetch each vertex's attributes from VRAM before it can push it off-screen — that fetch happens regardless of where the vertex ends up. Since everything after the vertex shader is starved of work, whatever time remains is attributable to fetching.
+
+Validation: tripling vertex count (holding draw call count fixed) should roughly triple the time.
+
+=======================================================================
+
+## VPC - Viewport Processing Cluster
+Isolates: the fixed-function cost of transforming clip-space triangles into screen space, clipping them, culling them, and setting them up for rasterization — the step between "vertex shader finished" and "rasterizer starts."
+
+How:
+- Triangles generated purely from SV_VertexID (no vertex buffer — zero VAF cost).
+- Each triangle is sized at sub-pixel scale and scattered across the screen via a hash function.
+- Because triangles are sub-pixel, most contribute zero or one covered pixel — rasterization and fragment shading stay near-zero cost, even though millions of triangles are being processed.
+
+Why this isolates clip/cull/setup cost: the GPU must still run the full transform + clip + cull + setup pipeline on every triangle regardless of whether it ends up visible — that per-triangle cost is paid up front, before the rasterizer even gets involved. Making triangles sub-pixel is what suppresses everything downstream (raster + shading) while keeping the upstream per-triangle cost high.
+
+Validation: scaling triangle count (or draw call count) should scale time roughly linearly.
+
+=======================================================================
+
+## CROP - Color Raster Operations (blending)
+Isolates: the cost of the fixed-function unit that reads-blends-writes color into the render target.
+
+How:
+- One full-screen triangle (same zero-vertex-fetch trick), fragment shader just returns a flat color (near-zero SM cost).
+- Blend SrcAlpha OneMinusSrcAlpha forces a read-blend-write for every pixel.
+- Many overlapping full-screen triangles are drawn per frame (e.g. 100), so every pixel gets read-blend-written many times over — inflates the signal enough to measure reliably.
+
+Why this isolates blend cost: with the fragment shader doing nothing, and geometry being a single trivial triangle, the only thing that scales with triangle count is the number of blend operations the ROPs have to perform on the target.
+
+Validation: scaling overlappingTriangles should scale time roughly linearly.
+
+=======================================================================
+
+## HOW THE C# PART WORKS
+
+The common infrastructure across all four benchmarks
+
+Every benchmark — FragmentBenchmark, VAF, VPC, CROP — is built on the exact same skeleton, regardless of which pipeline stage it's isolating. Only the actual draw calls differ; everything around them is identical:
+
+1. Set up a throwaway target to render into
+A RenderTexture is created once (OnEnable), sized to whatever resolution you're testing at. It's never inspected or displayed — its only job is to give the GPU somewhere to write, since a draw call needs a render target regardless of what you're measuring.
+
+2. Build a Material from the test shader
+One Material per benchmark, wrapping whichever shader isolates that stage. This is what actually gets bound to the GPU pipeline when the draw executes.
+
+3. Record commands into a CommandBuffer, don't execute directly
+Every frame, the command buffer is cleared and rebuilt from scratch: bind the render target, clear it, then (only if a test is actively running) issue the draw call(s) for that stage. Recording is separate from execution — nothing happens on the GPU until ExecuteCommandBuffer + Submit hand the whole batch off.
+
+4. Hijack the camera's render event instead of rendering a scene
+RenderPipelineManager.endCameraRendering is the hook used to inject this custom command buffer once per frame, per camera — bypassing whatever the render pipeline would normally draw. This is what keeps frame overhead near-zero, so "frame GPU time" and "benchmark GPU time" become effectively the same number.
+
+5. Gate the actual workload behind a flag
+A _runTest bool ensures the draw calls only fire while a benchmark is actively being measured — otherwise the GPU would burn cycles on the test workload continuously, even when nobody's watching.
+
+6. Warm up before trusting any numbers
+A fixed number of frames run with the real workload active but before any samples are recorded, so GPU clocks have time to ramp up to steady state. Sampling during a cold ramp-up would bias early readings.
+
+7. Measure with FrameTimingManager, not a stopwatch
+Since Unity doesn't expose raw GPU timestamp queries to script, FrameTimingManager.CaptureFrameTimings() + GetLatestTimings() is the mechanism used to pull actual GPU execution time per frame, sampled once per frame for a fixed window (e.g. 120 frames).
+
+8. Reduce to median, not mean
+Occasional frames come back as noise (OS scheduling hiccups, dropped/invalid timing samples) — median is resistant to those outliers in a way mean isn't, so it's the trusted number, with mean kept alongside as a cross-check.
+
+9. Inflate the signal with repetition
+A single draw call is often too fast to measure reliably against the noise floor — so the same workload is repeated multiple times per frame (multiple draw calls, or overlapping triangles) purely to make the measured time large enough to trust.
