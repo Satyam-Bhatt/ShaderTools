@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_WindshieldRain
-  m_Shader: {fileID: 4800000, guid: 17c09d7b29bba784b97cd25240b38f24, type: 3}
+  m_Name: Custom_URP_PlaneSSR
+  m_Shader: {fileID: 4800000, guid: 7853836c0b1e15d40b6d52c8a9179e34, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -23,26 +23,26 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _RainTex:
-        m_Texture: {fileID: 2800000, guid: 1a170cf0830fcd34c855ec52f92a1073, type: 3}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DistortionStrength: 0.0394
-    - _FresnelPower: 8
-    - _RainAmount: 1
-    - _SpecPower: 140
-    - _Tiling1: 3
-    - _Tiling2: 5.5
-    - _WiperAngle: -90
-    - _WiperRadius: 0.94
-    - _WiperWidth: 17.8
+    - _BinarySteps: 7.47
+    - _DistortStrength: 0.03
+    - _EdgeFade: 0.132
+    - _FresnelPower: 2.51
+    - _MaxDistance: 72.7
+    - _MaxSteps: 50.1
+    - _NoLoopDistance: 5
+    - _NormalStrength: 1
+    - _Reflectivity: 0.9
+    - _StepSize: 0.202
+    - _Thickness: 0.69
+    - _UseNoLoop: 0
     m_Colors:
-    - _SpecColor: {r: 0.8773585, g: 0.6166341, b: 0.6166341, a: 1}
-    - _Speed1: {r: 0, g: 0, b: 0, a: 0}
-    - _Speed2: {r: 0.015, g: -5.31, b: 0, a: 0}
-    - _TintColor: {r: 0, g: 0.52, b: 1, a: 1}
-    - _WiperPivotUV: {r: 0.5, g: 0.05, b: 0, a: 0}
+    - _BaseColor: {r: 0.36320752, g: 0.73277456, b: 1, a: 1}
+    - _NormalTiling: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
