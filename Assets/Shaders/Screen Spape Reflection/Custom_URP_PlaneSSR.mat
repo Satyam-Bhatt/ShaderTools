@@ -29,15 +29,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BinarySteps: 7.47
+    - _BinarySteps: 7.26
     - _DistortStrength: 0.03
-    - _EdgeFade: 0.132
-    - _FresnelPower: 2.51
+    - _EdgeFade: 0
+    - _FresnelPower: 2.75
     - _MaxDistance: 72.7
-    - _MaxSteps: 50.1
-    - _NoLoopDistance: 5
+    - _MaxSteps: 20
+    - _NoLoopDistance: 31.6
     - _NormalStrength: 1
-    - _Reflectivity: 0.9
+    - _Reflectivity: 1
     - _StepSize: 0.202
     - _Thickness: 0.69
     - _UseNoLoop: 0

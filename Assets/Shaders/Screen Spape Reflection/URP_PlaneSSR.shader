@@ -35,6 +35,7 @@ Shader "Custom/URP_PlaneSSR"
 
         [Header(Edge Fade)]
         _EdgeFade       ("Screen Edge Fade", Range(0.0, 0.5)) = 0.15
+
     }
 
     SubShader
