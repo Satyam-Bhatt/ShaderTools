@@ -24,7 +24,7 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
-                //float4 tangentOS : TANGENT;
+                float4 tangentOS : TANGENT;
                 float2 uv : TEXCOORD0;
             };
 
@@ -34,6 +34,7 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 float3 positionWS : TEXCOORD0;
                 float3 normalWS : TEXCOORD1;
                 float2 uv : TEXCOORD2;
+                float4 tangentWS = TEXCOORD3;
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -51,8 +52,10 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 // M^-1 = S^-1 R^-1
                 // M^-1 = S^-1 R^T (R is orthogonal so inverse is transpose)
                 // M^-T = R S^-1 (The order is restored. Transpose of R^T is R itself. S is a diagonal matrix so transpose doesn't do anything to it)
-                // We need the inverse of S matrix as in the case of non uniform scaling - inverse of S gives us the correct scaling which adjusts the normals direction or where is should leand towards
+                // We need the inverse of S matrix as in the case of non uniform scaling - inverse of S gives us the correct scaling which adjusts the normals direction or where is should lean towards. One visualization is that as the plane shrinks - the tangent on that plane shrinks too but the normal increases
                 OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS.xyz);
+                OUT.tangentWS.xyz = TransformObjectToWorldDir(IN.tangentOS.xyz);
+                OUT.tangentWS = float4(tangentWS, IN.tangentOS.w * GetOddNegativeScale()); // What did we do here
                 OUT.uv = IN.uv;
                 return OUT;
             }
