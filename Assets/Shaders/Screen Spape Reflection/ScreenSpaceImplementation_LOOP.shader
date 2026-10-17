@@ -40,6 +40,20 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
             CBUFFER_START(UnityPerMaterial)
             CBUFFER_END
 
+            // TODO
+            float3 SampleSurfaceNormal(float2 uv, float3 normalWS, float4 tangentWS)
+            {
+                float2 tiledUV = uv * _NormalTiling.xy + _NormalTiling.zw;
+                float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, tiledUV), _NormalStrength);
+
+                float3 bitangentWS = cross(normalWS, tangentWS.xyz) * tangentWS.w;
+                float3x3 tangentToWorld = float3x3(tangentWS.xyz, bitangentWS, normalWS);
+
+                // mul with row-major TBN (tangentToWorld rows = basis vectors) -> world space normal
+                float3 perturbedWS = normalize(mul(normalTS, tangentToWorld));
+                return perturbedWS;
+            }
+
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
@@ -55,15 +69,23 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 // We need the inverse of S matrix as in the case of non uniform scaling - inverse of S gives us the correct scaling which adjusts the normals direction or where is should lean towards. One visualization is that as the plane shrinks - the tangent on that plane shrinks too but the normal increases
                 OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS.xyz);
                 OUT.tangentWS.xyz = TransformObjectToWorldDir(IN.tangentOS.xyz);
-                OUT.tangentWS = float4(tangentWS, IN.tangentOS.w * GetOddNegativeScale()); // What did we do here
+                // What GetOddNegativeScale does is that is goes and fetches the scale axes of the object. If the object's transform has odd number of negative scale axes (one or three) it returns -1 and if it has 2 or 0 negative scale axes then returns 1
+                // It is needed because when someone makes the scale negative then the Geometry flips. As tangents are baked into the mesh but do not change with the tranform. We need to update the tangents so that when we get the bitangent, which is the cross product of normal and the tangent, it points in the right direction. This just flips the tangent when the Geometry is flipped
+                // Even number of negative axis like (-1,-1,1) is just a 180 rotation 
+                OUT.tangentWS = float4(tangentWS, IN.tangentOS.w * GetOddNegativeScale()); 
                 OUT.uv = IN.uv;
                 return OUT;
             }
 
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
-                return color;
+                // We didn't normalize earlier as if we would have then after it would have been interpolated in the fragment stage unit vector would have broken.
+                // So always renormalize in the fragment Shader
+                float3 geoNormalWS = normalize(IN.normalWS); // Why didn't we normalize them earlier
+                // SampleSurfaceNormal builds the final per-pixel normal because
+                // SHOULD WE NORMALIZE TANGENT??
+                float3 normalWS = SampleSurfaceNormal(IN.uv, geoNormalWS, IN.tangentWS); // What does this do
+
             }
             ENDHLSL
         }
