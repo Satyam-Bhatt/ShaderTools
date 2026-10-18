@@ -2,7 +2,14 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
 {
     Properties
     {
-}
+        [Header (Normal Mapping)]
+        _NormalMap ("Normal Map", 2D) = "bump"{}
+        _NormalStrength ("Normal Strength", float) = 1
+        _NormalTiling ("Normal Tiling", Vector) = (1,1,0,0)
+        
+        [Header(Loop Ray March Setting)]
+        _MaxSteps ("Max Steps", Range(8,128)) = 48
+        _StepSize ("Ray Step Size", Range(0.01, 2)) = 0.15
     }
 
     SubShader
@@ -37,21 +44,34 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 float4 tangentWS = TEXCOORD3;
             };
 
+            TEXTURE2D(_NormalMap);
+            SAMPLER(sampler_NormalMap);
+
             CBUFFER_START(UnityPerMaterial)
+                float _NormalStrength;
+                float4 _NormalTiling;
+                float4 _NormalMap_ST;
+
+                int _MaxSteps;
+                float _StepSize;
             CBUFFER_END
 
-            // TODO
             float3 SampleSurfaceNormal(float2 uv, float3 normalWS, float4 tangentWS)
             {
                 float2 tiledUV = uv * _NormalTiling.xy + _NormalTiling.zw;
                 float3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, tiledUV), _NormalStrength);
 
                 float3 bitangentWS = cross(normalWS, tangentWS.xyz) * tangentWS.w;
-                float3x3 tangentToWorld = float3x3(tangentWS.xyz, bitangentWS, normalWS);
+                float3x3 tangentToWorld = float3x3(tangentWS.xyz, bitangentWS, normalWS); // TBN matrix
 
-                // mul with row-major TBN (tangentToWorld rows = basis vectors) -> world space normal
                 float3 perturbedWS = normalize(mul(normalTS, tangentToWorld));
                 return perturbedWS;
+            }
+
+            half3 SampleRedlectionLoop(float3 viewPosOrigin, float3 reflectDirVS, out float fadeOut)
+            {
+                float3 rayPos = viewPosOrigin;
+                float3 rayStep = reflectDirVS * _StepSize;
             }
 
             Varyings vert(Attributes IN)
@@ -59,7 +79,7 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 // TransformObjectToWorld applies the model matrix
-                OUT.positionWS = TransformObjectToWorld(IN.positionOS.xyz);
+                OUT.positionWS = mul(UNITY_MATRIX_M, float4(IN.positionOS, 1.0)).xyz;
                 // TransformObjectToWorldNormal this multiplied it with the Inverse transpose of model matrix (3x3).
                 // M = Model || R = Rotation || S = Scale
                 // M = RS
@@ -82,10 +102,19 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 // We didn't normalize earlier as if we would have then after it would have been interpolated in the fragment stage unit vector would have broken.
                 // So always renormalize in the fragment Shader
                 float3 geoNormalWS = normalize(IN.normalWS); // Why didn't we normalize them earlier
-                // SampleSurfaceNormal builds the final per-pixel normal because
-                // SHOULD WE NORMALIZE TANGENT??
-                float3 normalWS = SampleSurfaceNormal(IN.uv, geoNormalWS, IN.tangentWS); // What does this do
+                float4 geoTangentWS = normalize(IN.tangentWS);
+                // SampleSurfaceNormal builds the final per-pixel normal from the texture we attached above. We get normal from the texture in tangent space and we convert it into WS by multiplying with TBN matrix
+                float3 normalWS = SampleSurfaceNormal(IN.uv, geoNormalWS, geoTangentWS);
 
+                float3 viewPosOrigin = mul(UNITY_MATRIX_V, float4(IN.positionWS, 1.0)).xyz;
+                float3 viewNormal = normalize(TransformWorldToViewDir(normalWS, true));
+                float3 viewDirIn = normalize(viewPosOrigin);
+                float3 reflectDirVS = normalize(reflec(viewDirIn, viewNormal));
+                
+                half3 reflectionColor;
+                float fade;
+
+                reflectionColor = SampleRedlectionLoop(viewPosOrigin, reflectDirVS, fade); // Why not pass viewDirIn here rather than viewPosOrigin
             }
             ENDHLSL
         }
