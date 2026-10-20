@@ -10,6 +10,9 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
         [Header(Loop Ray March Setting)]
         _MaxSteps ("Max Steps", Range(8,128)) = 48
         _StepSize ("Ray Step Size", Range(0.01, 2)) = 0.15
+        _MaxDistance ("Max Reflection Distance", Range(1, 200)) = 50
+        _Thickness ("Depth Thickness Tolerance", Range(0.01, 5)) = 0.50
+        _BinarySteps ("Binary Refine Steps", Range(0, 12)) = 5
     }
 
     SubShader
@@ -54,8 +57,12 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
 
                 int _MaxSteps;
                 float _StepSize;
+                float _MaxDistance;
+                float _Thickness;
+                float _BinarySteps;
             CBUFFER_END
 
+            // Sample normal texture
             float3 SampleSurfaceNormal(float2 uv, float3 normalWS, float4 tangentWS)
             {
                 float2 tiledUV = uv * _NormalTiling.xy + _NormalTiling.zw;
@@ -68,10 +75,92 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 return perturbedWS;
             }
 
+            // Converts a view space position to a 0-1 screen uv using projection matrix
+            float2 ViewToScreenUV(float3 viewPos)
+            {
+                float4 clipPos = mul(UNITY_MATRIX_P, float4(viewPos, 1.0));
+                float2 ndc = clipPos.xy / clipPos.w;
+                float2 uv = ndc * 0.5 + 0.5;
+#if UNITY_UV_STARTS_AT_TOP
+                uv.y = 1.0 - uv.y;
+#endif
+                return uv;
+            }
+
+            float SceneEyeDepth(float2 uv)
+            {
+                float raw = SampleSceneDepth(uv);
+                return LinearEyeDepth(raw, _ZBufferParams);
+            }
+
             half3 SampleRedlectionLoop(float3 viewPosOrigin, float3 reflectDirVS, out float fadeOut)
             {
                 float3 rayPos = viewPosOrigin;
                 float3 rayStep = reflectDirVS * _StepSize;
+                float3 prevRayPos = rayPos;
+
+                bool hit = false;
+                float2 hitUV = 0;
+
+                // Check if we hit something by marching the ray and testing the depth
+                [loop]
+                for(int i = 0; i < _MaxSteps; i++)
+                {
+                    prevRayPos = rayPos;
+                    rayPos += rayStep;
+
+                    if(length(rayPos - viewPosOrigin) > _MaxDistance)
+                        break;
+
+                    float2 uv = ViewToScreenUV(rayPos); 
+                    if (uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1)
+                        break;
+
+                    float sceneDepth = SceneEyeDepth(uv);
+                    // To make the value positive as the camera faces in the negative direction we add minus sign
+                    float rayDepth = -rayPos.z; // TODO: Verify this claim
+                    float diff = rayDepth - sceneDepth;
+
+                    if(diff > 0 && diff < _Thickness)
+                    {
+                        hit = true;
+                        hitUV = uv;
+                        break;
+                    }
+                }
+
+                if(hit)
+                {
+                    float3 a = prevRayPos;
+                    float3 b = rayPos;
+
+                    // Check what did we hit and returning the color on the basis of that
+                    [loop]
+                    for (int j = 0; j < _BinarySteps; j++)
+                    {
+                        float3 mid = lerp(a, b, 0.5); // TODO: Why choose mid
+                        float2 uv = ViewToScreenUV(mid);
+                        float sceneDepth = SceneEyeDepth(uv);
+                        float rayDepth = -mid.z;
+                        float diff = rayDepth - sceneDepth;
+
+                        if (diff > 0 && diff < _Thickness)
+                        {
+                            b = mid;
+                            hitUV = uv;
+                        }
+                        else
+                        {
+                            a = mid;
+                        }
+                    }
+
+                    fadeOut = EdgeFadeAmount(hitUV); // TODO: add this function
+                    return SampleSceneColor(hitUV);
+                }
+
+                fadeOut = 0;
+                return _BaseColor.rgb;
             }
 
             Varyings vert(Attributes IN)
@@ -106,15 +195,18 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 // SampleSurfaceNormal builds the final per-pixel normal from the texture we attached above. We get normal from the texture in tangent space and we convert it into WS by multiplying with TBN matrix
                 float3 normalWS = SampleSurfaceNormal(IN.uv, geoNormalWS, geoTangentWS);
 
-                float3 viewPosOrigin = mul(UNITY_MATRIX_V, float4(IN.positionWS, 1.0)).xyz;
-                float3 viewNormal = normalize(TransformWorldToViewDir(normalWS, true));
+                // This makes the camera at origin and the vertex at some position w.r.t camera
+                float3 viewPosOrigin = mul(UNITY_MATRIX_V, float4(IN.positionWS, 1.0)).xyz; // TODO: Verify this claim
+                float3 viewNormal = normalize(TransformWorldToViewDir(normalWS, true)); // TODO: Why pass true here
+                // Direction from camera to the vertex
                 float3 viewDirIn = normalize(viewPosOrigin);
                 float3 reflectDirVS = normalize(reflec(viewDirIn, viewNormal));
                 
                 half3 reflectionColor;
                 float fade;
 
-                reflectionColor = SampleRedlectionLoop(viewPosOrigin, reflectDirVS, fade); // Why not pass viewDirIn here rather than viewPosOrigin
+                // We pass viewPosOrigin instead of direction as we are going to move in that direction and increment it slowly
+                reflectionColor = SampleRedlectionLoop(viewPosOrigin, reflectDirVS, fade); // TODO: Verify this claim
             }
             ENDHLSL
         }
