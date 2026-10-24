@@ -29,17 +29,17 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BinarySteps: 7.26
+    - _BinarySteps: 12
     - _DistortStrength: 0.03
     - _EdgeFade: 0
-    - _FresnelPower: 2.75
-    - _MaxDistance: 72.7
-    - _MaxSteps: 20
+    - _FresnelPower: 1
+    - _MaxDistance: 131
+    - _MaxSteps: 128
     - _NoLoopDistance: 31.6
     - _NormalStrength: 1
     - _Reflectivity: 1
-    - _StepSize: 0.202
-    - _Thickness: 0.69
+    - _StepSize: 0.09
+    - _Thickness: 1.81
     - _UseNoLoop: 0
     m_Colors:
     - _BaseColor: {r: 0.36320752, g: 0.73277456, b: 1, a: 1}

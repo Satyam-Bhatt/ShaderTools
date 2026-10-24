@@ -13,6 +13,9 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
         _MaxDistance ("Max Reflection Distance", Range(1, 200)) = 50
         _Thickness ("Depth Thickness Tolerance", Range(0.01, 5)) = 0.50
         _BinarySteps ("Binary Refine Steps", Range(0, 12)) = 5
+
+        [Header(EdgeFade)]
+        _EdgeFade ("Screen Edge Fade", Range(0,0.5)) = 0.15
     }
 
     SubShader
@@ -41,10 +44,10 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
             struct Varyings
             {
                 float4 positionHCS : SV_POSITION;
-                float3 positionWS : TEXCOORD0;
-                float3 normalWS : TEXCOORD1;
-                float2 uv : TEXCOORD2;
-                float4 tangentWS = TEXCOORD3;
+                float3 positionWS  : TEXCOORD0;
+                float3 normalWS    : TEXCOORD1;
+                float2 uv          : TEXCOORD2;
+                float4 tangentWS   : TEXCOORD3;
             };
 
             TEXTURE2D(_NormalMap);
@@ -60,6 +63,8 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 float _MaxDistance;
                 float _Thickness;
                 float _BinarySteps;
+
+                float _EdgeFade;
             CBUFFER_END
 
             // Sample normal texture
@@ -87,12 +92,32 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                 return uv;
             }
 
+            // Converts depth value into view space - positive Distance from the camera
+            // TODO: Verify the claim
             float SceneEyeDepth(float2 uv)
             {
                 float raw = SampleSceneDepth(uv);
                 return LinearEyeDepth(raw, _ZBufferParams);
             }
+            
+            // Fades in towards the center _EdgeFade with edges 0 and center 1
+            // Sharp lines at diagonals here x ad y are the same because it doesn't match with the steady gradient of x and y
+            float EdgeFadeAmount(float2 uv)
+            {
+                float2 edgeDist = min(uv, 1 - uv);
+                return saturate(min(edgeDist.x, edgeDist.y) / max(_EdgeFade, 1e-4));
+            }
 
+            // Basically march the ray and test the Depth (world space)
+            // If at any point we march beyond the depth that means we have hit something
+            // When we know we have hit something we again march between the prevRayPos and the current ray pos
+            // We find the middle point, sample the depth there and then check it with our position and see if we are behind or in front of that depth
+            // if we are behind then we move the prevRayPos to the mid and run the loop, if we are ahead then we move the current ray pos to the mid and run the loop
+            // This just ensures that we sameple the color from the correct place as we keep on moving the prevRayPos and current ray pos. This also helps us avoid erros especially if our ray steps are quite big
+            // Also one thing to keep in mid that we are comparing the depth value at that location with the z value of that vector to see if the vector is behind or ahead of it
+            // This happens in View space
+            // TODO: Verify this claim and also ask won't some GPU cores get free early and some would run more in this loop case as we break early
+            // TODO: Sample the exact point that we get in the first loop
             half3 SampleRedlectionLoop(float3 viewPosOrigin, float3 reflectDirVS, out float fadeOut)
             {
                 float3 rayPos = viewPosOrigin;
@@ -117,7 +142,7 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                         break;
 
                     float sceneDepth = SceneEyeDepth(uv);
-                    // To make the value positive as the camera faces in the negative direction we add minus sign
+                    // To make the value positive as the camera faces in the negative direction we add minus sign to make it positive
                     float rayDepth = -rayPos.z; // TODO: Verify this claim
                     float diff = rayDepth - sceneDepth;
 
@@ -138,10 +163,10 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                     [loop]
                     for (int j = 0; j < _BinarySteps; j++)
                     {
-                        float3 mid = lerp(a, b, 0.5); // TODO: Why choose mid
+                        float3 mid = lerp(a, b, 0.5); 
                         float2 uv = ViewToScreenUV(mid);
                         float sceneDepth = SceneEyeDepth(uv);
-                        float rayDepth = -mid.z;
+                        float rayDepth = -mid.z; // Here we are only concerned about the z value
                         float diff = rayDepth - sceneDepth;
 
                         if (diff > 0 && diff < _Thickness)
@@ -155,8 +180,8 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
                         }
                     }
 
-                    fadeOut = EdgeFadeAmount(hitUV); // TODO: add this function
-                    return SampleSceneColor(hitUV);
+                    fadeOut = EdgeFadeAmount(hitUV);
+                    return SampleSceneColor(hitUV); // TODO: Implement it yourself
                 }
 
                 fadeOut = 0;
@@ -207,6 +232,18 @@ Shader "Custom/ScreenSpaceImplementation_LOOP"
 
                 // We pass viewPosOrigin instead of direction as we are going to move in that direction and increment it slowly
                 reflectionColor = SampleRedlectionLoop(viewPosOrigin, reflectDirVS, fade); // TODO: Verify this claim
+
+                float NdotV = saturate(dot(normalWS, normalize(GetWorldSpaceViewDir(IN.positionWS))));// TODO: How is this View vector I guess I know but need to think
+                // Steeper angle more refleciteve and straight angle then neglegible fresnel. Power just helps us control the tansition
+                // TODO: Verify
+                float fresnel = pow(1.0 - NdotV, _FresnelPower); 
+                // How much we want to reflect as per the angle we looking at
+                float reflectAmount = saturate(_Reflectivity * lerp(0.2, 1.0, fresnel));
+
+                // Blend between base color and reflection color on the basis of our looking angle and Fade
+                // TODO: Looke once more and test the reflection color separately
+                half3 finalColor = lerp(_BaseColor.rgb, reflectionColor, reflectAmount * fade);
+                return half4(finalColor, 1.0);
             }
             ENDHLSL
         }
